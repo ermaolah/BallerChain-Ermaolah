@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\controllers",
+    "\\middlewares",
+    "\\models",
+    "\\routes"
+  ],
+  "SelectedNode": "\\controllers\\marketplace.js",
+  "PreviewInSolutionExplorer": false
+}
