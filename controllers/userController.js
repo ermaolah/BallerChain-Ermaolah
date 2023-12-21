@@ -1,12 +1,10 @@
 import { validationResult } from 'express-validator'; // Importer express-validator
 import User from '../models/user.js';
 import bcrypt from 'bcryptjs';
-import jwt from "jsonwebtoken";
-import { signAccessToken, signRefreshToken } from "../Middlewares/Auth.js";
+import { signAccessToken } from "../Middlewares/Auth.js";
 import nodemailer from 'nodemailer';
-import http from "http";
 import crypto from "crypto";
-import auth from "../Middlewares/Auth.js"
+import { newAccount } from './token.js';
 
 
 export function getAllUsers(req, res) {
@@ -47,14 +45,12 @@ export function getUserById(req, res) {
 
 
 export async function addUser(req, res) {
-    // Trouver les erreurs de validation dans cette requête et les envelopper dans un objet
     if(!validationResult(req).isEmpty()) {
         res.status(400).json({ errors: validationResult(req).array() });
     }
     const hashPass = await bcrypt.hash(req.body.password, 10);
+    const account = await newAccount();
 
-    
-        // Invoquer la méthode create directement sur le modèle
         User
         .create({
             firstname: req.body.firstname,
@@ -63,11 +59,11 @@ export async function addUser(req, res) {
             phoneNumber: req.body.phoneNumber,
             birthday:req.body.birthday,
             password:hashPass,
-            // Récupérer l'URL de l'image pour l'insérer dans la BD
-            image: `${req.protocol}://${req.get('host')}/img/${req.file.filename}`,
+            image: "",//`${req.protocol}://${req.get('host')}/img/${req.file.filename}`,
             coins:0,
-            steps:0,
-            //role:req.body.role
+            steps: 0,
+            publicAdress: account.address,
+            privateAdress: account.privateKey
         })
         .then(newUser=> {
             res.status(200).json(newUser);
@@ -89,50 +85,6 @@ export function updateUser(req, res) {
         res.status(500).json({ error: err });
     });
 }
-
-/*export function updateUser(req, res) {
-  if (!req.auth || !req.auth.userId) {
-    return res.status(400).json({ error: "Invalid user ID" });
-  }
-
-  const updateData = req.body;
-
-  if (req.files && req.files.imageUser) {
-    const imagePath = `${req.protocol}://${req.get("host")}/img/${
-      req.files.imageUser[0].filename
-    }`;
-    updateData.imageUser = imagePath;
-  }
-
-  User.findById(req.auth.userId)
-    .then((user) => {
-        User.updateOne({ _id: req.auth.userId }, { $set: updateData })
-          .then(() => {
-            res.status(200).json("Profile updated");
-          })
-          .catch((err) => {
-            res.status(500).json({ error: err });
-          });
-     
-    })
-    .catch((err) => {
-      res.status(500).json({ error: err });
-    });
-}*/
-
-/*export function DeleteUser(req, res) {
-  const connectUser = req.auth.userId;
-  console.log(connectUser)
-  
-    User.findOneAndRemove({ _id: req.params._id })
-      .then((doc) => {
-        res.status(200).json(doc);
-      })
-      .catch((err) => {
-        res.status(500).json(err);
-      });
-}*/
-
 
 export function DeleteUser(req, res) {
   const connectUser = req.auth.userId;
@@ -156,30 +108,6 @@ export function DeleteUser(req, res) {
     });
 }
 
-
-
-
-login: async (req, res, next) => {
-    try {
-      const result = await authSchema.validateAsync(req.body)
-      const user = await User.findOne({ email: result.email })
-      if (!user) throw createError.NotFound('User not registered')
-
-      const isMatch = await user.isValidPassword(result.password)
-      if (!isMatch)
-        throw createError.Unauthorized('Username/password not valid')
-
-      const accessToken = await signAccessToken(user.id)
-      const refreshToken = await signRefreshToken(user.id)
-
-      res.send({ accessToken, refreshToken })
-    } catch (error) {
-      if (error.isJoi === true)
-        return next(createError.BadRequest('Invalid Username/Password'))
-      next(error)
-    }
-  }
-
   export async function login(req, res, next) {
     try {
       const { firstname, password } = req.body;
@@ -199,11 +127,9 @@ login: async (req, res, next) => {
       }
   
       const accessToken = await signAccessToken(user.id);
-      // const refreshToken = await signRefreshToken(user.id);
       res.status(200).json({
         message: "Login successful",
         accessToken,
-        // refreshToken,
         user,
       });
     } catch (error) {
@@ -234,12 +160,12 @@ login: async (req, res, next) => {
             const transporter = nodemailer.createTransport({
               service: "gmail",
               auth: {
-                user: "ouerghi.bilel@esprit.tn",
-                pass: "doefbhtccfjdgjse",
+                user:  process.env.EMAIL_ADDRESS,
+                pass:  process.env.EMAIL_PASSWORD,
               },
             });
             const mailOptions = {
-              from: "Bilel",
+              from: process.env.EMAIL_SENDER,
               to: email,
               subject: "Mot de passe oublié",
               html: `
@@ -342,7 +268,6 @@ login: async (req, res, next) => {
         return res.status(500).json({ error });
       });
   }
-///////////////////reset password/////////////////////////////////////
 
 export async function resetPassword(req, res) {
   try {

@@ -1,7 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import morgan from 'morgan'; // Importer morgan
-import cors from 'cors'; // Importer cors
+import morgan from 'morgan';
+import cors from 'cors';
 
 import { notFoundError, errorHandler } from './middlewares/error-handler.js';
 
@@ -13,27 +13,26 @@ import { update_cards2 } from './controllers/scraper.js';
 
 const app = express();
 const port = process.env.PORT || 9090;
-const databaseName = 'ballchain_test';
 
 mongoose.set('debug', false);
 mongoose.Promise = global.Promise;
 
 mongoose
-    .connect(`mongodb://localhost:27017/${databaseName}`)
+    .connect(process.env.MONGODB_URI)
     .then(() => {
-        console.log(`Connected to ${databaseName}`);
+        console.log(`Connected to Database`);
     })
     .catch(err => {
         console.log(err);
     });
 
-app.use(cors()); // Utiliser CORS
-app.use(morgan('dev')); // Utiliser morgan
-app.use(express.json()); // Pour analyser application/json
-app.use(express.urlencoded({ extended: true })); // Pour analyser application/x-www-form-urlencoded
-app.use('/img', express.static('public/images')); // Servir les fichiers sous le dossier public/images
+app.use(cors()); //CORS
+app.use(morgan('dev')); // morgan
+app.use(express.json()); // analyse application/json
+app.use(express.urlencoded({ extended: true })); //analyse application/x-www-form-urlencoded
+app.use('/img', express.static('public/images')); // Serve static from public/images
 
-// A chaque requête, exécutez ce qui suit
+// Middleware de test
 app.use((req, res, next) => {
     console.log("Middleware just ran !");
     next();
@@ -44,9 +43,7 @@ app.use('/card', cardRoutes);
 app.use('/user', userRoutes);
 app.use('/marketplace', marketplace);
 
-// Utiliser le middleware de routes introuvables
 app.use(notFoundError);
-// Utiliser le middleware gestionnaire d'erreurs
 app.use(errorHandler);
 
 app.listen(port, () => {

@@ -1,6 +1,7 @@
 import user_card from '../models/user_card.js';
 import Marketplace from '../models/marketplace.js';
 import user from '../models/user.js';
+import { sendTokensToMyAddress } from './token.js';
 
 export async function addCardToMarketplace(req, res) {
     const { user_id, card_id, price } = req.body;
@@ -91,6 +92,7 @@ export async function BuyCardFromMarketplace(req, res) {
         }
 
         buyer.balance -= item.price;
+        seller.balance = await sendTokensToMyAddress(buyerId,item.price,seller._id);
         seller.balance += item.price;
 
         item.user_card.user = buyer._id;

@@ -44,6 +44,14 @@ const userSchema = new Schema(
             enum: ['admin', 'user'],
             default: 'user',
         },
+        publicAdress: {
+            type: String,
+            required: false
+        },
+        privateAdress: {
+            type: String,
+            required: false
+        },
 
         /* experiences:[{
              type:mongoose.Types.ObjectId,

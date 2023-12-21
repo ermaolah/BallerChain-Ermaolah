@@ -4,10 +4,10 @@ import { addCardToMarketplace, getAllCardsFromMarketplace, BuyCardFromMarketplac
 const router = express.Router();
 
 router
-    .route('/addCard').post(addCardToMarketplace);
+    .route('/addCard').post(addCardToMarketplace)
 router
-    .route('/getCards/:filter').get(getAllCardsFromMarketplace);
+    .route('/getCards/:filter').get(getAllCardsFromMarketplace)
 router
-    .route('/buyCard/:card_id/:user').get(BuyCardFromMarketplace);
+    .route('/buyCard/:card_id/:user').get(BuyCardFromMarketplace)
 
 export default router;

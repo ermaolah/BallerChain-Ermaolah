@@ -1,35 +1,11 @@
-import fs from 'fs';
 import Player from '../models/card.js';
-import Stat from '../models/stats.js';
 import user from '../models/user.js';
 import user_card from '../models/user_card.js';
-
-const players = JSON.parse(fs.readFileSync('./public/players.json', 'utf-8'));
-
-
-export function addFromFile(req, res) {
-    players.forEach(player => {
-        const newStat = new Stat(player.stats[0]);
-        newStat.save((error, stat) => {
-            if (error) {
-                console.error(error);
-                return;
-            }
-
-            const newPlayer = new Player({
-                name: player.name,
-                image: player.image,
-                rating: player.rating,
-                stats: [stat._id]
-            });
-            newPlayer.save();
-        });
-    });
-    res.status(200).json("success");
-}
+import Fixture from '../models/fixture.js';
+import Team from '../models/team.js';
 
 export async function generatePack(req, res) {
-    const players = await Player.find();
+    const players = await Player.find().populate('card');
     const playerIds = players.map(p => p._id);
     const chances = players.map(p => 10000000000 / (Math.pow(p.rating - 20, 7 - req.params.power) + 10000000000));
     const chancesSum = chances.reduce((sum, chance) => sum + chance, 0);
@@ -43,7 +19,6 @@ export async function generatePack(req, res) {
             if (selectedPlayers.has(playerIds[j])) continue;
             sum += normalizedChances[j];
             if (sum >= randomNumber) {
-                //console.log("chance:" + normalizedChances[j] + players[j].name);
                 selectedPlayers.add(playerIds[j]);
                 const p_p = await addToUser(req.params.user, players[j]);
                 pack.push(p_p);
@@ -54,12 +29,6 @@ export async function generatePack(req, res) {
     res.status(200).json(pack);
 }
 
-export function register(req, res) {
-    const newPlayer = new user({
-        name: req.body.name
-    });
-    newPlayer.save();
-}
 
 async function addToUser(idUser, idCard) {
     const User = await user.findById(idUser);
@@ -90,7 +59,7 @@ async function addToUser(idUser, idCard) {
     return card_to_return
 }
 export function getMyCards(req, res) {
-    user_card.find({ user: req.params.user }).sort({ niveau: -1 }).exec((err, cards) => {
+    user_card.find({ user: req.params.user }).populate('card').sort({ niveau: -1 }).exec((err, cards) => {
         if (err) {
             console.error(err);
             res.status(500).json({ error: err });
@@ -101,7 +70,7 @@ export function getMyCards(req, res) {
 }
 
 export function getMyTeam(req, res) {
-    user_card.find({ 'user': req.params.user, position: { '$gt': -1 } })
+    user_card.find({ 'user': req.params.user, position: { '$gt': -1 } }).populate('card')
         .exec((err, cards) => {
             if (err) {
                 console.error(err);
@@ -146,3 +115,35 @@ export function changePlayerPosition(req, res) {
 
 }
 
+export function allPlayers(req, res) {
+    Player.find({}).exec((err, cards) => {
+        if (err) {
+            console.error(err);
+            res.status(500).json({ error: err });
+        } else {
+            res.status(200).json(cards);
+        }
+    });
+}
+
+export function getFixtures(req, res) {
+    Fixture.find({}).exec((err, cards) => {
+        if (err) {
+            console.error(err);
+            res.status(500).json({ error: err });
+        } else {
+            res.status(200).json(cards);
+        }
+    });
+}
+
+export function getTeams(req, res) {
+    Team.find({}).exec((err, cards) => {
+        if (err) {
+            console.error(err);
+            res.status(500).json({ error: err });
+        } else {
+            res.status(200).json(cards);
+        }
+    });
+}

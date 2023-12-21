@@ -1,8 +1,5 @@
 import  jwt  from 'jsonwebtoken';
 import createError from 'http-errors';
- 
-
-
 
 export function  signAccessToken (userId) {
     return new Promise((resolve, reject) => {
@@ -35,22 +32,6 @@ export function  signAccessToken (userId) {
         res.status(401).json({ error });
     }
  };
-
-export function verifyAccessToken (req, res, next) {
-    if (!req.headers['authorization']) return next(createError.Unauthorized())
-    const authHeader = req.headers['authorization']
-    const bearerToken = authHeader.split(' ')
-    const token = bearerToken[1]
-    JWT.verify(token, 'verySecretValue', (err, payload) => {
-      if (err) {
-        const message =
-          err.name === 'JsonWebTokenError' ? 'Unauthorized' : err.message
-        return next(createError.Unauthorized(message))
-      }
-      req.payload = payload
-      next()
-    })
-  }
   
   export function signRefreshToken (userId) {
     return new Promise((resolve, reject) => {
@@ -79,24 +60,3 @@ export function verifyAccessToken (req, res, next) {
     })
   }
 
-  export function verifyRefreshToken (refreshToken) {
-    return new Promise((resolve, reject) => {
-      jwt.verify(
-        refreshToken,
-        'verySecretValue',
-        (err, payload) => {
-          if (err) return reject(createError.Unauthorized())
-          const userId = payload.aud
-          client.GET(userId, (err, result) => {
-            if (err) {
-              console.log(err.message)
-              reject(createError.InternalServerError())
-              return
-            }
-            if (refreshToken === result) return resolve(userId)
-            reject(createError.Unauthorized())
-          })
-        }
-      )
-    })
-  }
