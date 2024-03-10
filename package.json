@@ -21,8 +21,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "name": "houssem_darragi_examen_mse_acs",
-  "version": "1.0.0",
+  "name": "BallerChain-Ermaolah",
+  "version": "0.0.1",
   "main": "server.js",
   "author": "",
   "license": "ISC",
