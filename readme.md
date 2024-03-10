@@ -56,11 +56,6 @@ We welcome contributions. Please follow these steps:
 
 This project is licensed under the MIT License - see the `LICENSE` file for details.
 
-## Contact
-
-Houssem Darragi – [houssem.darragi@esprit.tn](mailto:houssem.darragi@esprit.tn)
-
-
 ---
 
 ## Card Management Routes
